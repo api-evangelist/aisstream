@@ -1,0 +1,402 @@
+asyncapi: '2.6.0'
+id: 'urn:io:aisstream:v0:stream'
+info:
+  title: AISStream Real-Time AIS Stream (WebSocket)
+  version: '1.0.0'
+  description: |
+    AsyncAPI 2.6 description of **AISStream.io**, a free service that streams
+    global real-time AIS (Automatic Identification System) vessel-tracking data
+    over a **WebSocket**.
+
+    This is a real, documented, public WebSocket API. The client opens a secure
+    WebSocket to `wss://stream.aisstream.io/v0/stream`, immediately sends a single
+    JSON **subscription message** (an `APIKey` plus one or more `BoundingBoxes`
+    and optional `FiltersShipMMSI` / `FilterMessageTypes`), and then receives a
+    continuous server-push stream of AIS messages. Each received message is an
+    envelope with three top-level fields: `MessageType`, `MetaData`, and
+    `Message` (the decoded payload keyed by its message type).
+
+    There is **no REST API**. AISStream is WebSocket-only; the free API key is the
+    sole credential and it is carried inside the subscription payload rather than
+    in an HTTP header.
+
+    Schemas here are grounded in the official AISStream models
+    (https://github.com/aisstream/ais-message-models) and example clients
+    (https://github.com/aisstream/example), plus the documentation at
+    https://aisstream.io/documentation.
+  contact:
+    name: API Evangelist
+    email: kin@apievangelist.com
+    url: https://apievangelist.com
+  license:
+    name: AISStream.io documentation and Terms of Service
+    url: https://aisstream.io/
+  x-transport-notes:
+    transport: WebSocket (secure)
+    protocol: wss
+    endpoint: 'wss://stream.aisstream.io/v0/stream'
+    direction: bidirectional (client sends one subscription; server pushes AIS messages)
+    authentication: Free API key carried in the JSON subscription message field `APIKey` (not an HTTP header)
+    subscriptionRequired: 'A subscription message must be sent within 3 seconds of connecting or the server closes the socket.'
+    source: https://aisstream.io/documentation
+defaultContentType: application/json
+servers:
+  production:
+    url: stream.aisstream.io/v0/stream
+    protocol: wss
+    description: |
+      AISStream secure WebSocket endpoint. Connect, then send exactly one
+      SubscriptionMessage as a JSON text frame. The full connection URL is
+      `wss://stream.aisstream.io/v0/stream`.
+    security:
+      - apiKeyInPayload: []
+channels:
+  /v0/stream:
+    description: |
+      The single AISStream channel. After the WebSocket is open the client
+      publishes one `SubscriptionMessage`; the server then subscribes the client
+      to matching traffic and streams `AisStreamMessage` envelopes until the
+      socket is closed. The subscription can be updated at any time by sending a
+      new `SubscriptionMessage` over the same connection.
+    bindings:
+      ws:
+        bindingVersion: '0.1.0'
+    publish:
+      operationId: sendSubscription
+      summary: Send the subscription message (client to server).
+      description: |
+        Sent by the client as the first text frame after the socket opens, and
+        optionally again to change the active filters. Declares the API key, the
+        geographic bounding boxes of interest, and optional MMSI and message-type
+        filters. Must be sent within 3 seconds of connecting.
+      message:
+        $ref: '#/components/messages/SubscriptionMessage'
+    subscribe:
+      operationId: receiveAisMessages
+      summary: Receive the stream of AIS messages (server to client).
+      description: |
+        After a valid subscription is accepted, the server pushes a continuous
+        stream of AIS message envelopes. Inspect the `MessageType` field to
+        determine which decoded payload is present under `Message`.
+      message:
+        $ref: '#/components/messages/AisStreamMessage'
+components:
+  securitySchemes:
+    apiKeyInPayload:
+      type: userPassword
+      description: |
+        AISStream authentication is a single free API key obtained by
+        registering at https://aisstream.io/. Unlike header-based schemes, the
+        key is placed in the `APIKey` field of the JSON `SubscriptionMessage`
+        that the client sends over the open WebSocket. AsyncAPI 2.6 has no native
+        "credential in message payload" security type; `userPassword` is used as
+        the closest representation and the real mechanism is documented here and
+        in `info.x-transport-notes`.
+  messages:
+    SubscriptionMessage:
+      name: SubscriptionMessage
+      title: Subscription message (client to server)
+      summary: The JSON message the client sends to open or update a subscription.
+      contentType: application/json
+      description: |
+        The first frame the client sends after connecting. `APIKey` and
+        `BoundingBoxes` are required; `FiltersShipMMSI` and `FilterMessageTypes`
+        are optional. Coordinates in each bounding box are `[latitude, longitude]`
+        pairs given as two corners of the box.
+      payload:
+        $ref: '#/components/schemas/SubscriptionMessage'
+      examples:
+        - name: worldWide
+          summary: Subscribe to the entire world
+          payload:
+            APIKey: <YOUR API KEY>
+            BoundingBoxes:
+              - - - -90.0
+                  - -180.0
+                - - 90.0
+                  - 180.0
+        - name: filteredBox
+          summary: One box, filtered to specific vessels and message types
+          payload:
+            APIKey: <YOUR API KEY>
+            BoundingBoxes:
+              - - - 25.835302
+                  - -80.207729
+                - - 25.602700
+                  - -79.879297
+            FiltersShipMMSI:
+              - '368207620'
+              - '367719770'
+            FilterMessageTypes:
+              - PositionReport
+              - ShipStaticData
+    AisStreamMessage:
+      name: AisStreamMessage
+      title: AIS message envelope (server to client)
+      summary: A single decoded AIS message wrapped in the AISStream envelope.
+      contentType: application/json
+      description: |
+        Every message pushed by the server has three top-level fields:
+        `MessageType` (a string naming the AIS message type), `MetaData` (a
+        free-form object of connection-added metadata such as MMSI, ShipName,
+        latitude, longitude, and time_utc), and `Message` (an object with a
+        single key equal to `MessageType` whose value is the decoded payload).
+      payload:
+        $ref: '#/components/schemas/AisStreamMessage'
+      examples:
+        - name: positionReport
+          summary: A PositionReport envelope
+          payload:
+            MessageType: PositionReport
+            MetaData:
+              MMSI: 368207620
+              MMSI_String: 368207620
+              ShipName: 'EXAMPLE VESSEL      '
+              latitude: 25.702
+              longitude: -80.101
+              time_utc: '2026-07-12 12:00:00.000000000 +0000 UTC'
+            Message:
+              PositionReport:
+                MessageID: 1
+                RepeatIndicator: 0
+                UserID: 368207620
+                Valid: true
+                NavigationalStatus: 0
+                RateOfTurn: 0
+                Sog: 12.3
+                PositionAccuracy: true
+                Longitude: -80.101
+                Latitude: 25.702
+                Cog: 180.5
+                TrueHeading: 181
+                Timestamp: 30
+                Raim: false
+                CommunicationState: 2249
+  schemas:
+    SubscriptionMessage:
+      type: object
+      description: |
+        Client subscription request. Grounded in
+        github.com/aisstream/ais-message-models SubscriptionMessage.
+      required:
+        - APIKey
+        - BoundingBoxes
+      properties:
+        APIKey:
+          type: string
+          description: The free AISStream API key obtained by registering at https://aisstream.io/.
+        BoundingBoxes:
+          type: array
+          description: |
+            One or more geographic bounding boxes. Each box is an array of two
+            corner coordinates, and each coordinate is a `[latitude, longitude]`
+            pair. Only vessels inside at least one box are streamed.
+          items:
+            type: array
+            minItems: 2
+            maxItems: 2
+            items:
+              type: array
+              minItems: 2
+              maxItems: 2
+              items:
+                type: number
+              description: A '[latitude, longitude]' coordinate pair.
+        FiltersShipMMSI:
+          type: array
+          description: |
+            Optional. Restricts the stream to the listed MMSI identifiers
+            (as strings). When omitted, all vessels within the bounding boxes
+            are streamed.
+          items:
+            type: string
+        FilterMessageTypes:
+          type: array
+          description: |
+            Optional. Restricts the stream to the listed AIS message types.
+            When omitted, all message types are streamed.
+          items:
+            $ref: '#/components/schemas/AisMessageType'
+    AisStreamMessage:
+      type: object
+      description: The envelope wrapping every AIS message pushed by the server.
+      required:
+        - MessageType
+        - MetaData
+        - Message
+      properties:
+        MessageType:
+          $ref: '#/components/schemas/AisMessageType'
+        MetaData:
+          type: object
+          description: |
+            Free-form object of metadata AISStream adds to each message. Keys are
+            not guaranteed; commonly present keys are shown below. Modeled as an
+            open object (additionalProperties true).
+          additionalProperties: true
+          properties:
+            MMSI:
+              type: integer
+              description: The vessel MMSI identifier.
+            MMSI_String:
+              type: integer
+              description: The vessel MMSI as reported in the MMSI_String field.
+            ShipName:
+              type: string
+              description: The vessel name when known (may be blank-padded).
+            latitude:
+              type: number
+              description: Latitude associated with the message.
+            longitude:
+              type: number
+              description: Longitude associated with the message.
+            time_utc:
+              type: string
+              description: UTC timestamp string for when the message was received.
+        Message:
+          type: object
+          description: |
+            Object containing exactly one key, equal to `MessageType`, whose value
+            is the decoded AIS payload. The most common payloads are modeled
+            explicitly below; all documented message-type keys may appear.
+            Modeled as an open object so any message type can be carried.
+          additionalProperties: true
+          properties:
+            PositionReport:
+              $ref: '#/components/schemas/PositionReport'
+            ShipStaticData:
+              $ref: '#/components/schemas/ShipStaticData'
+    AisMessageType:
+      type: string
+      description: |
+        The set of AIS message types AISStream can stream, from
+        github.com/aisstream/ais-message-models AisMessageTypes.
+      enum:
+        - PositionReport
+        - UnknownMessage
+        - AddressedSafetyMessage
+        - AddressedBinaryMessage
+        - AidsToNavigationReport
+        - AssignedModeCommand
+        - BaseStationReport
+        - BinaryAcknowledge
+        - BinaryBroadcastMessage
+        - ChannelManagement
+        - CoordinatedUTCInquiry
+        - DataLinkManagementMessage
+        - DataLinkManagementMessageData
+        - ExtendedClassBPositionReport
+        - GroupAssignmentCommand
+        - GnssBroadcastBinaryMessage
+        - Interrogation
+        - LongRangeAisBroadcastMessage
+        - MultiSlotBinaryMessage
+        - SafetyBroadcastMessage
+        - ShipStaticData
+        - SingleSlotBinaryMessage
+        - StandardClassBPositionReport
+        - StandardSearchAndRescueAircraftReport
+        - StaticDataReport
+    PositionReport:
+      type: object
+      description: |
+        Decoded AIS Position Report (ITU-R M.1371 message types 1/2/3). Fields
+        from github.com/aisstream/ais-message-models PositionReport.
+      properties:
+        MessageID:
+          type: integer
+        RepeatIndicator:
+          type: integer
+        UserID:
+          type: integer
+          description: The transmitting vessel MMSI.
+        Valid:
+          type: boolean
+        NavigationalStatus:
+          type: integer
+        RateOfTurn:
+          type: integer
+        Sog:
+          type: number
+          description: Speed over ground (knots).
+        PositionAccuracy:
+          type: boolean
+        Longitude:
+          type: number
+        Latitude:
+          type: number
+        Cog:
+          type: number
+          description: Course over ground (degrees).
+        TrueHeading:
+          type: integer
+        Timestamp:
+          type: integer
+        SpecialManoeuvreIndicator:
+          type: integer
+        Spare:
+          type: integer
+        Raim:
+          type: boolean
+        CommunicationState:
+          type: integer
+    ShipStaticData:
+      type: object
+      description: |
+        Decoded AIS Ship Static and Voyage Related Data (message type 5). Fields
+        from github.com/aisstream/ais-message-models ShipStaticData.
+      properties:
+        MessageID:
+          type: integer
+        RepeatIndicator:
+          type: integer
+        UserID:
+          type: integer
+          description: The transmitting vessel MMSI.
+        Valid:
+          type: boolean
+        AisVersion:
+          type: integer
+        ImoNumber:
+          type: integer
+        CallSign:
+          type: string
+        Name:
+          type: string
+        Type:
+          type: integer
+          description: Ship and cargo type code.
+        Dimension:
+          type: object
+          description: Ship dimension (A/B/C/D offsets to the position reference).
+          properties:
+            A:
+              type: integer
+            B:
+              type: integer
+            C:
+              type: integer
+            D:
+              type: integer
+        FixType:
+          type: integer
+        Eta:
+          type: object
+          description: Estimated time of arrival components.
+          properties:
+            Month:
+              type: integer
+            Day:
+              type: integer
+            Hour:
+              type: integer
+            Minute:
+              type: integer
+        MaximumStaticDraught:
+          type: number
+        Destination:
+          type: string
+        Dte:
+          type: boolean
+        Spare:
+          type: boolean

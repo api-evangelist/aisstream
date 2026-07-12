@@ -1,0 +1,49 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "AISStream AIS Stream API (WebSocket)",
+    "version": "0"
+  },
+  "items": [
+    {
+      "info": {
+        "name": "AIS Stream",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Connect and subscribe to the real-time AIS stream.",
+            "type": "websocket"
+          },
+          "websocket": {
+            "url": "wss://stream.aisstream.io/v0/stream",
+            "subprotocols": [],
+            "messages": [
+              {
+                "name": "Subscription message (world-wide)",
+                "direction": "send",
+                "type": "json",
+                "data": "{\"APIKey\":\"<YOUR API KEY>\",\"BoundingBoxes\":[[[-90.0,-180.0],[90.0,180.0]]]}"
+              },
+              {
+                "name": "Subscription message (filtered)",
+                "direction": "send",
+                "type": "json",
+                "data": "{\"APIKey\":\"<YOUR API KEY>\",\"BoundingBoxes\":[[[25.835302,-80.207729],[25.602700,-79.879297]]],\"FiltersShipMMSI\":[\"368207620\"],\"FilterMessageTypes\":[\"PositionReport\",\"ShipStaticData\"]}"
+              },
+              {
+                "name": "AIS message envelope (received)",
+                "direction": "receive",
+                "type": "json",
+                "data": "{\"MessageType\":\"PositionReport\",\"MetaData\":{\"MMSI\":368207620,\"ShipName\":\"EXAMPLE VESSEL\",\"latitude\":25.702,\"longitude\":-80.101,\"time_utc\":\"2026-07-12 12:00:00.000000000 +0000 UTC\"},\"Message\":{\"PositionReport\":{\"UserID\":368207620,\"Latitude\":25.702,\"Longitude\":-80.101,\"Sog\":12.3,\"Cog\":180.5}}}"
+              }
+            ]
+          },
+          "docs": "AISStream is WebSocket-only. Connect to wss://stream.aisstream.io/v0/stream and send one JSON subscription message within 3 seconds. APIKey and BoundingBoxes are required; FiltersShipMMSI and FilterMessageTypes are optional. The server then pushes a stream of AIS message envelopes - check MessageType to know which decoded payload is under Message. Authentication is the free API key placed in the APIKey field, not an HTTP header."
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

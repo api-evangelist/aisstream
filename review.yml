@@ -1,0 +1,119 @@
+aid: aisstream
+name: AISStream
+review:
+  question: Does AISStream expose a documented public WebSocket API?
+  answer: true
+  date: '2026-07-12'
+  reviewer: API Evangelist
+  asyncapiSpecCreated: true
+  asyncapiScopeNote: |
+    AISStream is a WebSocket-first, WebSocket-only service. An AsyncAPI 2.6
+    document was authored at asyncapi/aisstream-asyncapi.yml modeling the secure
+    WebSocket server (wss://stream.aisstream.io/v0/stream), the client-to-server
+    subscription message (APIKey + BoundingBoxes + optional FiltersShipMMSI +
+    FilterMessageTypes), and the server-to-client AIS message envelope
+    (MessageType + MetaData + Message), including the full AisMessageTypes enum
+    and the two most common decoded payloads (PositionReport, ShipStaticData).
+findings:
+  summary: |
+    AISStream.io publishes a real, documented, public WebSocket API. The client
+    opens a secure WebSocket to wss://stream.aisstream.io/v0/stream, sends a
+    single JSON subscription message within 3 seconds, and then receives a
+    continuous server-push stream of decoded AIS (Automatic Identification
+    System) vessel messages. The subscription declares an APIKey plus one or
+    more BoundingBoxes and optional FiltersShipMMSI (list of MMSIs) and
+    FilterMessageTypes (list of AIS message types). Each received message is an
+    envelope with MessageType, a free-form MetaData object, and a Message object
+    keyed by the message type (PositionReport, ShipStaticData, and the rest of
+    the ITU-R M.1371 set). The service is free; the API key is obtained by
+    registering on the website and is carried in the subscription payload, not
+    an HTTP header.
+  restApiAbsent: |
+    There is NO REST API. AISStream exposes no HTTP request/response endpoints
+    for querying vessel data - the WebSocket stream is the entire product
+    surface. No openapi/ artifact was authored because there is no REST surface
+    to model; the primary and only machine-readable interface is the AsyncAPI
+    document. The HTTPS host stream.aisstream.io serves only the WebSocket
+    upgrade (a plain HTTPS GET returns 404).
+  transports:
+    - protocol: WebSocket
+      scheme: wss
+      endpoint: 'wss://stream.aisstream.io/v0/stream'
+      documented: true
+      note: The sole product surface. Send one JSON SubscriptionMessage, then receive a stream of AisStreamMessage envelopes.
+    - protocol: REST
+      scheme: https
+      documented: false
+      note: No REST / HTTP request-response API is documented or offered by AISStream.
+  subscriptionModel:
+    endpoint: 'wss://stream.aisstream.io/v0/stream'
+    firstFrameDeadlineSeconds: 3
+    subscriptionMessageFields:
+      - APIKey (string, required)
+      - BoundingBoxes (array of [[lat,lon],[lat,lon]] boxes, required)
+      - FiltersShipMMSI (array of MMSI strings, optional)
+      - FilterMessageTypes (array of AIS message-type names, optional)
+    envelopeFields:
+      - MessageType (string; one of the AisMessageTypes enum)
+      - MetaData (free-form object; e.g. MMSI, MMSI_String, ShipName, latitude, longitude, time_utc)
+      - Message (object keyed by MessageType containing the decoded payload)
+  messageTypes:
+    - PositionReport
+    - UnknownMessage
+    - AddressedSafetyMessage
+    - AddressedBinaryMessage
+    - AidsToNavigationReport
+    - AssignedModeCommand
+    - BaseStationReport
+    - BinaryAcknowledge
+    - BinaryBroadcastMessage
+    - ChannelManagement
+    - CoordinatedUTCInquiry
+    - DataLinkManagementMessage
+    - DataLinkManagementMessageData
+    - ExtendedClassBPositionReport
+    - GroupAssignmentCommand
+    - GnssBroadcastBinaryMessage
+    - Interrogation
+    - LongRangeAisBroadcastMessage
+    - MultiSlotBinaryMessage
+    - SafetyBroadcastMessage
+    - ShipStaticData
+    - SingleSlotBinaryMessage
+    - StandardClassBPositionReport
+    - StandardSearchAndRescueAircraftReport
+    - StaticDataReport
+  authentication: |
+    A single free API key obtained by registering at https://aisstream.io/. The
+    key is placed in the APIKey field of the JSON subscription message sent over
+    the open WebSocket - there is no HTTP header, OAuth, or bearer-token flow.
+  pricing: |
+    Free. AISStream provides the AIS data stream at no cost. Fair-use applies:
+    the subscription is scoped by bounding boxes (and optional MMSI / message
+    type filters) rather than a paid quota, and clients must send a subscription
+    promptly after connecting or the socket is closed.
+sources:
+  - url: https://aisstream.io/documentation
+    type: Documentation
+    note: Official API reference - WebSocket endpoint, subscription message, message types.
+  - url: https://aisstream.io/
+    type: Website
+    note: Homepage; free API key registration.
+  - url: https://github.com/aisstream/ais-message-models
+    type: SourceCode
+    note: Official models/libraries for SubscriptionMessage, AisStreamMessage envelope, and all AIS message types.
+  - url: https://github.com/aisstream/example
+    type: SourceCode
+    note: Official example clients (Go, Python, browser JS, C, C++, C#, Dart, Java) confirming wss endpoint and subscription/receive flow.
+  - url: https://github.com/aisstream/aisstream
+    type: SourceCode
+    note: Org README documenting FiltersShipMMSI and FilterMessageTypes subscription properties.
+actions:
+  asyncapiPath: asyncapi/aisstream-asyncapi.yml
+  openapiPath: null
+  apisYmlUpdated: true
+  reason: |
+    AISStream is a documented public WebSocket API, so the review answer is
+    TRUE and an AsyncAPI 2.6 document was authored as the core artifact. No
+    OpenAPI document was created because AISStream has no REST surface - it is
+    WebSocket-only - and fabricating a REST API would misrepresent the service.

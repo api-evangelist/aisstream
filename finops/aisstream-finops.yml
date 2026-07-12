@@ -1,0 +1,83 @@
+specification: FinOps Framework
+specificationVersion: '1.0'
+schema: https://www.finops.org/framework/
+provider: AISStream
+providerId: aisstream
+created: '2026-07-12'
+modified: '2026-07-12'
+reconciled: true
+tags:
+- Vessel Tracking
+- AIS
+- WebSocket
+- Streaming
+- FinOps
+- Cost Management
+description: >-
+  FinOps view of AISStream.io. AISStream is a free service - there is no billing,
+  no per-message charge, and no paid tier - so the direct provider cost is zero.
+  The relevant FinOps considerations are indirect: the compute and bandwidth a
+  consumer spends ingesting and processing the real-time AIS WebSocket stream,
+  which scale with how broad the subscription (BoundingBoxes and filters) is.
+notes: >-
+  No provider invoice exists because the service is free. Meters below describe
+  consumer-side resource usage to optimize, not amounts billed by AISStream.
+sources:
+- https://aisstream.io/
+- https://aisstream.io/documentation
+- https://focus.finops.org/focus-specification/v1-3/
+alignedWith:
+  framework: FinOps Foundation Framework
+  frameworkUrl: https://www.finops.org/framework/
+  dataSpec: FOCUS
+  dataSpecVersion: '1.3'
+  dataSpecUrl: https://focus.finops.org/focus-specification/v1-3/
+publisherName: AISStream
+serviceCategory: Location and Mapping
+billingModel:
+  pricingCategory: Free
+  billingFrequency: None
+  billingCurrency: USD
+  chargeCategories:
+  - Usage
+focusColumns:
+  ServiceName: AISStream AIS Stream
+  ServiceCategory: Location and Mapping
+  ProviderName: AISStream
+  PublisherName: AISStream
+  InvoiceIssuerName: AISStream
+  BillingCurrency: USD
+  ChargeCategory: Usage
+  PricingCategory: Free
+meters:
+- name: ingested_messages
+  description: AIS messages received from the WebSocket stream (consumer-side volume, not billed by AISStream).
+  unit: messages
+  aggregation: sum
+  dimensions:
+  - subscription
+  - message_type
+- name: consumer_bandwidth
+  description: Inbound bandwidth consumed ingesting the stream; scales with bounding-box breadth and filters.
+  unit: bytes
+  aggregation: sum
+  dimensions:
+  - subscription
+- name: consumer_compute_hours
+  description: Compute hours spent maintaining the WebSocket connection and processing messages.
+  unit: hours
+  aggregation: sum
+  dimensions:
+  - account
+principles:
+- name: Visibility
+  description: Track ingested message volume and bandwidth per subscription; there is no provider bill to reconcile.
+- name: Optimization
+  description: Narrow BoundingBoxes and apply FiltersShipMMSI / FilterMessageTypes to cut ingest volume and downstream processing cost.
+- name: Allocation
+  description: Tag each connection/API key to the workload it serves so consumer-side infra cost can be attributed.
+- name: Accountability
+  description: Since the feed is free, focus accountability on the consumer infrastructure that ingests and stores the stream.
+maintainers:
+- FN: Kin Lane
+  email: kin@apievangelist.com

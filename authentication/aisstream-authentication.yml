@@ -1,0 +1,21 @@
+generated: '2026-07-12'
+method: derived
+source: asyncapi/aisstream-asyncapi.yml + https://aisstream.io/documentation
+summary:
+  types:
+  - apiKey
+schemes:
+- name: api_key_in_payload
+  type: apiKey
+  in: message
+  fieldName: APIKey
+  description: >-
+    A single free API key obtained by registering at https://aisstream.io/. The
+    key is placed in the `APIKey` field of the JSON subscription message sent
+    over the open WebSocket (wss://stream.aisstream.io/v0/stream). It is NOT an
+    HTTP header, bearer token, or OAuth flow - AISStream carries the credential
+    inside the WebSocket message payload. A subscription message (with the key)
+    must be sent within 3 seconds of connecting or the server closes the socket.
+  sources:
+  - https://aisstream.io/documentation
+  - https://github.com/aisstream/ais-message-models

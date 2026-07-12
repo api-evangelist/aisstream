@@ -1,0 +1,35 @@
+generated: '2026-07-12'
+method: probed
+source: live DNS/TLS/HTTP probes of apis.yml + WebSocket hosts
+hosts:
+- host: aisstream.io
+  https: true
+  tls_version: TLSv1.3
+  cert_expires: Aug 26 03:21:49 2026 GMT
+  hsts: false
+  http_status: 403
+  notes: Homepage/docs sit behind Cloudflare (managed challenge to bots); returns 403 to non-browser clients.
+- host: stream.aisstream.io
+  https: true
+  tls_version: TLSv1.3
+  cert_expires: Jul 19 22:34:56 2026 GMT
+  hsts: false
+  http_status: 404
+  notes: WebSocket endpoint host (wss://stream.aisstream.io/v0/stream). A plain HTTPS GET returns 404; the socket is reached via the WebSocket upgrade.
+domains:
+- domain: aisstream.io
+  dnssec: false
+  caa:
+  - 0 issue "comodoca.com"
+  - 0 issue "digicert.com; cansignhttpexchanges=yes"
+  - 0 issue "letsencrypt.org"
+  - 0 issue "pki.goog; cansignhttpexchanges=yes"
+  - 0 issue "ssl.com"
+  - 0 issuewild "comodoca.com"
+  - 0 issuewild "digicert.com; cansignhttpexchanges=yes"
+  - 0 issuewild "letsencrypt.org"
+  - 0 issuewild "pki.goog; cansignhttpexchanges=yes"
+  - 0 issuewild "ssl.com"
+  spf: true
+  dmarc: true
+  dmarc_policy: reject

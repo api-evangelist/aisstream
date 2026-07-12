@@ -1,0 +1,82 @@
+aid: aisstream
+url: https://raw.githubusercontent.com/api-evangelist/aisstream/refs/heads/main/apis.yml
+name: AISStream
+kind: company
+description: AISStream.io is a free service that streams global real-time AIS
+  (Automatic Identification System) vessel-tracking data over a WebSocket. Clients
+  register for a free API key, open a secure WebSocket to
+  "wss://stream.aisstream.io/v0/stream", and send a JSON subscription message
+  declaring one or more geographic bounding boxes plus optional MMSI and
+  message-type filters. The server then pushes a continuous stream of AIS
+  messages - PositionReport, ShipStaticData, and the full set of ITU-R M.1371
+  message types - each wrapped in an envelope carrying MessageType, MetaData,
+  and the decoded Message. There is no REST API; the service is WebSocket-only.
+image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+tags:
+- Vessel Tracking
+- AIS
+- Maritime
+- Ship Tracking
+- Real-Time Data
+- WebSocket
+- Streaming
+- Ships
+- Maritime Data
+- Location
+created: '2026-07-12'
+modified: '2026-07-12'
+specificationVersion: '0.19'
+apis:
+- aid: aisstream:aisstream-ais-stream-api
+  name: AISStream AIS Stream API
+  tags:
+  - AIS
+  - Vessel Tracking
+  - WebSocket
+  - Streaming
+  - Real-Time Data
+  image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+  humanURL: https://aisstream.io/documentation
+  baseURL: 'wss://stream.aisstream.io/v0/stream'
+  properties:
+  - url: https://aisstream.io/documentation
+    type: Documentation
+  - url: https://aisstream.io/documentation
+    type: APIReference
+  - url: asyncapi/aisstream-asyncapi.yml
+    type: AsyncAPI
+  - url: collections/aisstream.postman_collection.json
+    type: PostmanCollection
+  - url: collections/aisstream.opencollection.json
+    type: OpenCollection
+  - url: https://github.com/aisstream/ais-message-models
+    type: SourceCode
+  - url: https://github.com/aisstream/example
+    type: SDK
+  description: Real-time global AIS vessel-tracking stream delivered over a single
+    WebSocket at "wss://stream.aisstream.io/v0/stream". The client connects, sends
+    a JSON subscription message (APIKey plus BoundingBoxes and optional
+    FiltersShipMMSI and FilterMessageTypes), and receives a continuous feed of AIS
+    messages - each an envelope with MessageType, a free-form MetaData object, and
+    the decoded Message keyed by its type (PositionReport, ShipStaticData, and the
+    rest of the ITU-R M.1371 message set).
+common:
+- type: DomainSecurity
+  url: security/aisstream-domain-security.yml
+- type: Authentication
+  url: authentication/aisstream-authentication.yml
+- type: GitHubOrganization
+  url: https://github.com/aisstream
+- type: Website
+  url: https://aisstream.io
+- type: Documentation
+  url: https://aisstream.io/documentation
+- type: Plans
+  url: plans/aisstream-plans-pricing.yml
+- type: RateLimits
+  url: rate-limits/aisstream-rate-limits.yml
+- type: FinOps
+  url: finops/aisstream-finops.yml
+maintainers:
+- FN: Kin Lane
+  email: kin@apievangelist.com

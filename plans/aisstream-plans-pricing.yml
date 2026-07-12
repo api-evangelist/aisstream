@@ -1,0 +1,55 @@
+specification: API Commons Plans
+specificationVersion: '0.1'
+schema: https://raw.githubusercontent.com/api-evangelist/interface-research/main/schema/api-commons.yml#/$defs/Plans
+provider: AISStream
+providerId: aisstream
+created: '2026-07-12'
+modified: '2026-07-12'
+reconciled: true
+tags:
+- Vessel Tracking
+- AIS
+- Maritime
+- Real-Time Data
+- WebSocket
+- Streaming
+- Plans
+description: >-
+  AISStream.io is free. There is a single access tier: register for a free API
+  key and stream real-time global AIS data over the WebSocket at no cost. There
+  are no paid, developer, or enterprise tiers and no per-message billing.
+  Consumption is scoped by the subscription (bounding boxes plus optional MMSI
+  and message-type filters) under a fair-use model rather than a purchased quota.
+notes: >-
+  Verify current terms on the website; the service has historically been offered
+  free of charge with fair-use expectations.
+sources:
+- https://aisstream.io/
+- https://aisstream.io/documentation
+plans:
+- id: aisstream-free
+  name: Free
+  type: free
+  description: >-
+    Free real-time global AIS WebSocket stream. Requires a free API key from
+    aisstream.io. Scope your traffic with BoundingBoxes and optional
+    FiltersShipMMSI / FilterMessageTypes.
+  entries:
+  - label: AIS WebSocket Stream
+    name: ais_stream
+    type: free
+    metric: messages
+    limit: -1
+    timeFrame: month
+    geo: global
+    unit: 1
+    price: free
+    userMultiplied: false
+  elements:
+  - name: Real-Time AIS Stream (wss://stream.aisstream.io/v0/stream)
+  - name: Bounding Box Subscriptions
+  - name: MMSI Filters (FiltersShipMMSI)
+  - name: Message Type Filters (FilterMessageTypes)
+maintainers:
+- FN: Kin Lane
+  email: kin@apievangelist.com

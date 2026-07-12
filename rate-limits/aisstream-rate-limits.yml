@@ -1,0 +1,53 @@
+specification: API Commons Rate Limits
+specificationVersion: '0.1'
+schema: https://raw.githubusercontent.com/api-evangelist/interface-research/main/schema/api-commons.yml#/$defs/RateLimits
+provider: AISStream
+providerId: aisstream
+created: '2026-07-12'
+modified: '2026-07-12'
+reconciled: false
+tags:
+- Vessel Tracking
+- AIS
+- WebSocket
+- Streaming
+- Rate Limiting
+- Fair Use
+description: >-
+  AISStream.io does not publish numeric request quotas; it is a free WebSocket
+  stream governed by fair use. Instead of an RPM/quota model, throughput is
+  bounded by the subscription itself: a client must send a subscription message
+  within 3 seconds of connecting or the socket is closed, and the volume of
+  streamed messages is constrained by the declared BoundingBoxes and optional
+  FiltersShipMMSI / FilterMessageTypes. Excessively broad or abusive use may
+  have the connection or API key throttled or closed.
+notes: >-
+  No published per-minute or per-day numeric limits. Values here describe the
+  documented connection behavior and fair-use constraints, not a metered quota.
+sources:
+- https://aisstream.io/documentation
+- https://github.com/aisstream/issues
+limits:
+- name: Subscription Deadline
+  scope: connection
+  metric: seconds
+  limit: 3
+  notes: A subscription message must be sent within 3 seconds of opening the WebSocket or the server closes the connection.
+- name: Streamed Message Volume
+  scope: subscription
+  metric: messages
+  limit: bounded by subscription
+  notes: Throughput is scoped by the declared BoundingBoxes plus optional FiltersShipMMSI and FilterMessageTypes; narrow the subscription to reduce volume.
+- name: Fair Use
+  scope: account
+  metric: usage
+  limit: fair use
+  notes: No published numeric quota; abusive or excessively broad usage may be throttled or disconnected.
+policies:
+- name: Scope Your Subscription
+  description: Use tight bounding boxes and MMSI / message-type filters to receive only the data you need.
+- name: Reconnect With Backoff
+  description: On disconnect, reconnect and re-send the subscription; apply exponential backoff with jitter.
+maintainers:
+- FN: Kin Lane
+  email: kin@apievangelist.com

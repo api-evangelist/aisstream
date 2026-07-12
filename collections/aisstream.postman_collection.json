@@ -1,0 +1,59 @@
+{
+  "info": {
+    "name": "AISStream AIS Stream API (WebSocket)",
+    "description": "AISStream.io real-time global AIS vessel-tracking stream. WebSocket-only: connect to wss://stream.aisstream.io/v0/stream, then send one JSON subscription message (APIKey + BoundingBoxes + optional FiltersShipMMSI / FilterMessageTypes) and receive a stream of AIS message envelopes. There is no REST API.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "apiKey",
+      "value": "<YOUR API KEY>",
+      "type": "string"
+    },
+    {
+      "key": "wsUrl",
+      "value": "wss://stream.aisstream.io/v0/stream",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "AIS Stream (WebSocket)",
+      "description": "Open the AISStream WebSocket and subscribe. In Postman, create a WebSocket request to {{wsUrl}}, connect, then send the subscription message below as a raw JSON text frame. The server responds with a continuous stream of AisStreamMessage envelopes (MessageType, MetaData, Message).",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Sec-WebSocket-Protocol",
+            "value": "",
+            "description": "No subprotocol is required; authentication is carried in the subscription message body, not a header."
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"APIKey\": \"{{apiKey}}\",\n  \"BoundingBoxes\": [[[-90.0, -180.0], [90.0, 180.0]]],\n  \"FiltersShipMMSI\": [\"368207620\", \"367719770\"],\n  \"FilterMessageTypes\": [\"PositionReport\", \"ShipStaticData\"]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "wss://stream.aisstream.io/v0/stream",
+          "protocol": "wss",
+          "host": [
+            "stream",
+            "aisstream",
+            "io"
+          ],
+          "path": [
+            "v0",
+            "stream"
+          ]
+        },
+        "description": "WebSocket endpoint. Send the JSON subscription message within 3 seconds of connecting. APIKey and BoundingBoxes are required; FiltersShipMMSI and FilterMessageTypes are optional. Each bounding box is two [latitude, longitude] corner pairs."
+      },
+      "response": []
+    }
+  ]
+}
