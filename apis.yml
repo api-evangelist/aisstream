@@ -38,7 +38,7 @@ tags:
 - Location
 created: '2026-07-12'
 modified: '2026-07-12'
-specificationVersion: '0.19'
+specificationVersion: '0.23'
 apis:
 - aid: aisstream:aisstream-ais-stream-api
   name: AISStream AIS Stream API
