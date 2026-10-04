@@ -12,16 +12,19 @@ description: AISStream.io is a free service that streams global real-time AIS
   message types - each wrapped in an envelope carrying MessageType, MetaData,
   and the decoded Message. There is no REST API; the service is WebSocket-only.
 deliveryModel:
-  model: unknown
+  model: saas
+  license_evidence:
+    not_product:
+    - aisstream/ais-message-models
   open_source: unknown
   commercial: true
   callable_host: false
-  label: Delivery model not determined — needs a product licence on record
+  label: Hosted service · you call their endpoint
   confidence: low
   source:
   - pricing
-  - repository-unlicensed
-  generated: '2026-08-28'
+  - repository-not-product
+  generated: '2026-09-25'
   method: derived
 accessModel:
   pricing: free
@@ -49,6 +52,7 @@ tags:
 - Ships
 - Maritime Data
 - Location
+- Real-Time
 created: '2026-07-12'
 modified: '2026-07-12'
 specificationVersion: '0.23'
